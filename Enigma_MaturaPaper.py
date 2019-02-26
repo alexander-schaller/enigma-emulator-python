@@ -1,39 +1,37 @@
 import json
 
-##ScramblerWiring info is opened --> and json information extracted
+# ScramblerWiring info is opened --> and json information extracted
 ScramblerText = open('ScramblerText.json', 'r')
 Scramblers = json.load(ScramblerText)
 
 
-##Main Function
-def Enigma(SL, SP, PB, RP, word):
-    """SL (Scrambler Location, List of 3 Scramblers)
-    SP (Scrambler Position, List of 3 Letters you can see on the machine)
-    PB (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
-    RP (Ring Position, List of 3 Numbers from 1 - 26)
+# Main Function
+def enigma(sl, sp, pb, rp, word):
+    """sl (Scrambler Location, List of 3 Scramblers)
+    sp (Scrambler Position, List of 3 Letters you can see on the machine)
+    pb (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
+    rp (Ring Position, List of 3 Numbers from 1 - 26)
     word (Input)"""
-    ScramblerNum = {"I": 0, "II": 1, "III": 2, "IV": 3, "V": 4}
-    SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[
-        SL[2]]  ## Turns the Three roman numerals of the scrambler into Numbers
-    SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65  ##Turn State into Numbers
-    ## Creates the 3 Scramblers with the specific information
-    S1 = Scrambler(Scramblers[SL1], Scramblers[6][SL1], SP1, RP[0])  ##Left scrambler in the machine
-    S2 = Scrambler(Scramblers[SL2], Scramblers[6][SL2], SP2, RP[1])  ##Middle Scrambler in the machine
-    S3 = Scrambler(Scramblers[SL3], Scramblers[6][SL3], SP3, RP[2])  ##Right Scrambler in the machine
-    BP = {value: key for key, value in PB.items()}  ##Creating a Second Dictionary with the reversed keys
-    PB.update(BP)  # Joining Both Dictionaries
-    ScramblerText.close()  ##Important to close the File -->  Otherwise it corupts
-    x, y, z = False, False, False  ##Variables to prevent repetition
-    S1.ring_setting(), S2.ring_setting(), S3.ring_setting()  ##Applies ring setting
+    scrambler_num = {"I": 0, "II": 1, "III": 2, "IV": 3, "V": 4}
+    sl1, sl2, sl3 = scrambler_num[sl[0]], scrambler_num[sl[1]], scrambler_num[sl[2]]  # Turns the Three roman numerals of the scrambler into Numbers
+    sp1, sp2, sp3 = ord(sp[0]) - 65, ord(sp[1]) - 65, ord(sp[2]) - 65  # Turn State into Numbers
+    # Creates the 3 Scramblers with the specific information
+    S1 = Scrambler(Scramblers[sl1], Scramblers[6][sl1], sp1, rp[0])  # Left scrambler in the machine
+    S2 = Scrambler(Scramblers[sl2], Scramblers[6][sl2], sp2, rp[1])  # Middle Scrambler in the machine
+    S3 = Scrambler(Scramblers[sl3], Scramblers[6][sl3], sp3, rp[2])  # Right Scrambler in the machine
+    BP = {value: key for key, value in pb.items()}  # Creating a Second Dictionary with the reversed keys
+    pb.update(BP)  # Joining Both Dictionaries
+    ScramblerText.close()  # Important to close the File -->  Otherwise it corrupts
+    x, y, z = False, False, False  # Variables to prevent repetition
+    S1.ring_setting(), S2.ring_setting(), S3.ring_setting()  # Applies ring setting
 
-    for l in word:  ##Iterates through the Script for each component of word (In this case letters)
-        l = l.upper()  ##All input are changed to uppercase
-        pbd = plugboard(l,
-                        PB)  ##Input l goes through Plugboard function with arguments l (letter) and PB (Dictionary for Plugboard)
+    for w in word:  # Iterates through the Script for each component of word (In this case letters)
+        w = w.upper()  # All input are changed to uppercase
+        pbd = plugboard(w, pb)  # Input l goes through Plugboard function with arguments l (letter) and pb (Dictionary for Plugboard)
 
-        ##Forward through Scramblers
-        S3.state_up()  ##State increased by one
-        ##If the State Matches that of the TurnOverNotch, State of next rotor goes up by one
+        # Forward through Scramblers
+        S3.state_up()  # State increased by one
+        # If the State Matches that of the TurnOverNotch, State of next rotor goes up by one
         if x:
             S2.state_up()
             x = False
@@ -51,56 +49,54 @@ def Enigma(SL, SP, PB, RP, word):
         if S2.State == ord(S2.TurnOverNotch) - 65:
             y = True
 
-        ##Back through Scramblers
-        rf = Scramblers[5][letter_new3]  ##Letter goes through Reflector Dictionary
+        # Back through Scramblers
+        rf = Scramblers[5][letter_new3]  # Letter goes through Reflector Dictionary
         letter_back1 = S1.backward(rf)
         letter_back2 = S2.backward(letter_back1)
         letter_back3 = S3.backward(letter_back2)
 
-        ##Checking whether the letter is in the Plugboard or not
-        print(plugboard(letter_back3, PB), end="")
+        # Checking whether the letter is in the Plugboard or not
+        print(plugboard(letter_back3, pb), end="")
 
 
-##Scrambler Class
+# Scrambler Class
 class Scrambler(object):
-    def __init__(self, Wiring, TurnOverNotch, State, RingPosition):
+    def __init__(self, wiring, turn_over_notch, state, ring_position):
         # Declaring the Variables for the class
-        self.Wiring = Wiring
-        self.TurnOverNotch = TurnOverNotch
-        self.State = State
-        self.RingPosition = RingPosition
+        self.Wiring = wiring
+        self.TurnOverNotch = turn_over_notch
+        self.State = state
+        self.RingPosition = ring_position
 
     def ring_setting(self):
-        ##Sets RingPosition to start from 0 not 1
+        # Sets RingPosition to start from 0 not 1
         self.RingPosition -= 1
 
     def state_up(self):
-        ##State goes up by one, State remains smaller than 26
+        # State goes up by one, State remains smaller than 26
         self.State += 1
         self.State %= 26
 
     def forward(self, l):
-        ##State is added to the letter Ring Position is subtracted then checked whether it is bigger than 26
-        return chr(((ord(self.Wiring[chr((ord(
-            l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
+        # State is added to the letter Ring Position is subtracted then checked whether it is bigger than 26
+        return chr(((ord(self.Wiring[chr((ord(l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
 
     def backward(self, l):
         og = {value: key for key, value in self.Wiring.items()}
-        return chr(((ord(og[chr((ord(
-            l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
+        return chr(((ord(og[chr((ord(l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
 
 
-##Sub Functions
-def plugboard(l, PB):
-    ##If the letter is in the Plugboard(PB) then it changes its value otherwise it keeps it.
-    if l in PB:
-        pbo = PB[l]
+# Sub Functions
+def plugboard(l, pb):
+    # If the letter is in the Plugboard(pb) then it changes its value otherwise it keeps it.
+    if l in pb:
+        pbo = pb[l]
     else:
         pbo = l
     return pbo
 
 
-##Input Values
+# Input Values
 SL = ["I", "IV", "II"]
 SP = ["A", "R", "Y"]
 PB = {
@@ -116,7 +112,6 @@ PB = {
     "X": "Z"
 }
 RP = [7, 11, 19]
-word = "helloxmeetxmexatxthexstairs"
-##word = "WritteninthesewallsarethestoriesthatIcantexplainIleavemyheartopenbutitstaysrighthereemptyfordaysShetoldmeinthemorningShedontfeelthesameaboutusinherbonesItseemstomethatwhenIdieThesewordswillbewrittenonmystoneAndIllbegonegonetonightThegroundbeneathmyfeetisopenwideThewaythatIvebeenholdinontootightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryofthestoryofWrittenonthesewallsareThecolorsthatIcantchangeLeavemyheartopenButitstaysrighthereinitscageIknowthatinthemorningnowIseeascendinglightuponahillAlthoughIambrokenmyheartisuntamedstillAndIllbegonegonetonightThefirebeneathmyfeetisburningbrightThewaythatIvebeenholdinonsotightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryof"
-##Call Function Enigma
-Enigma(SL, SP, PB, RP, word)
+word_input = "helloxmeetxmexatxthexstairs"
+# Call Function Enigma
+enigma(SL, SP, PB, RP, word_input)
