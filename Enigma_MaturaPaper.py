@@ -46,25 +46,22 @@ def Plugboard(l):
 def Rotator(Scram):
     cp1, cp2, cp3 = Scram[0].State, Scram[1].State, Scram[2].State
     S1, S2, S3 = Scram[0].Wiring, Scram[1].Wiring, Scram[2].Wiring
-    print(cp1, cp2, cp3)
+    STEMP1, STEMP2, STEMP3 = S1, S2, S3
     for i in range(26):
-        S1[chr((i % 26) + 65)] = S1[chr(((i + 1) % 26) + 65)]
+        S1[chr(i + 65)] = STEMP1[chr(((i + 1) % 26) + 65)]
     if cp1 == Scram[0].TurnOverNotch:
         for i in range(26):
-            S2[chr((i % 26) + 65)] = S2[chr(((i + 1) % 26) + 65)]
+            S2[chr(i + 65)] = STEMP2[chr(((i + 1) % 26) + 65)]
     if cp2 == Scram[1].TurnOverNotch:
         for i in range(26):
-            S3[chr((i % 26) + 65)] = S3[chr(((i + 1) % 26) + 65)]
+            S3[chr(i + 65)] = STEMP3[chr(((i + 1) % 26) + 65)]
 
 def Reflector(l, f):
     ##Letter first goes through reflector scrambler, then back from right to left through scramblers
     l = Scramblers[5][l]
-    print(l)
     ## following code is a way to flip the direction of a dictionary, pretty much checks for all the values of dict then all keys and searches for index i
-    s1 = list(Scramblers[f[0]].keys())[list(Scramblers[f[0]].values()).index(l)]
-    s2 = list(Scramblers[f[1]].keys())[list(Scramblers[f[1]].values()).index(s1)]
-    s3 = list(Scramblers[f[2]].keys())[list(Scramblers[f[2]].values()).index(s2)]
-    return s3
+    s1, s2, s3 = {value: key for key, value in Scramblers[f[0]].items()}, {value: key for key, value in Scramblers[f[1]].items()}, {value: key for key, value in Scramblers[f[2]].items()}
+    return s3[s2[s1[l]]]
 
 
 ##Changes roman numerals to Python Indices
@@ -81,7 +78,7 @@ PB = {"A":"G",
       "T":"K"}
 
 ##Call Function Enigma
-for i in "Hello":
-    print("Output Letter: " + Enigma(SL, SP, PB, i))
-# for q in range(100):
-#     print(Enigma(SL, SP, PB, "A"))
+# for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+#     print("Output Letter: " + Enigma(SL, SP, PB, i))
+for q in range(10):
+    print(Enigma(SL, SP, PB, "A"))
