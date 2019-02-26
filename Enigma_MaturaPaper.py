@@ -1,7 +1,7 @@
 import json
 
 ##ScramblerWiring info is opened --> and json information extracted
-ScramblerText = open('ScramblerText.txt', 'r')
+ScramblerText = open('ScramblerText.json', 'r')
 Scramblers = json.load(ScramblerText)
 
 
