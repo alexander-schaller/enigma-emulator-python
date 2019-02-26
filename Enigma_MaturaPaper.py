@@ -20,7 +20,7 @@ def Enigma (SL, SP, PB, RP, word):
     BP = {value: key for key, value in PB.items()} ##Creating a Second Dictionary with the reversed keys
     PB.update(BP) ##Joining Both Dictionaries
     ScramblerText.close() ##Important to close the File -->  Otherwise it corupts
-    y = False ##Variables to prevent repetition
+    x, y, z= False, False, False ##Variables to prevent repetition
     S1.ring_setting(), S2.ring_setting(), S3.ring_setting() ##Applies ring setting
 
     for l in word: ##Iterates through the Script for each component of word (In this case letters)
@@ -29,18 +29,23 @@ def Enigma (SL, SP, PB, RP, word):
 
         ##Forward through Scramblers
         S3.state_up() ##State increased by one
-        letter_new1 = S3.forward(pbd)
         ##If the State Matches that of the TurnOverNotch, State of next rotor goes up by one
-        if S3.State == ord(S3.TurnOverNotch) - 64:
+        if x:
             S2.state_up()
-            y = True
-        print(y)
-        letter_new2 = S2.forward(letter_new1)
-        if S2.State == ord(S2.TurnOverNotch) - 64 and y:
+            x = False
+            z = True
+        if y and z:
             S1.state_up()
+            S2.state_up()
             y = False
+            z = False
+        letter_new1 = S3.forward(pbd)
+        letter_new2 = S2.forward(letter_new1)
         letter_new3 = S1.forward(letter_new2)
-        print(chr(S1.State + 65), chr(S2.State + 65), chr(S3.State + 65), end = "/")
+        if S3.State == ord(S3.TurnOverNotch) - 65:
+            x = True
+        if S2.State == ord(S2.TurnOverNotch) - 65:
+            y = True
 
         ##Back through Scramblers
         rf = Scramblers[5][letter_new3] ##Letter goes through Reflector Dictionary
@@ -49,10 +54,9 @@ def Enigma (SL, SP, PB, RP, word):
         letter_back3 = S3.backward(letter_back2)
 
         ##Checking whether the letter is in the Plugboard or not
-        print(plugboard(letter_back3, PB))
+        print(plugboard(letter_back3, PB), end = "")
 
 ##Scrambler Class
-
 class Scrambler(object):
     def __init__(self, Wiring, TurnOverNotch, State, RingPosition):
         #Declaring the Variables for the class
@@ -79,7 +83,6 @@ class Scrambler(object):
         return chr(((ord(og[chr((ord(l) - 65 + self.State - self.RingPosition)%26 + 65)]) - 65 - self.State + self.RingPosition)% 26) + 65)
 
 ##Sub Functions
-
 def plugboard(l, PB):
     ##If the letter is in the Plugboard(PB) then it changes its value otherwise it keeps it.
     if l in PB:
@@ -89,13 +92,23 @@ def plugboard(l, PB):
     return pbo
 
 ##Input Values
-SL = ["I","II","III"]
-SP = ["A","D","U"]
-PB = {}
-RP = [4,4,4]
-# SL = ["I","II","III"]
-# SP = ["A","A","A"]
-# PB = {}
-# RP = [4,4,4]
+SL = ["I","IV","II"]
+SP = ["A","L","X"]
+PB = {
+"A" : "C",
+"B" : "Q",
+"E" : "T",
+"G" : "Y",
+"I" : "R",
+"J" : "W",
+"L" : "S",
+"M" : "U",
+"N" : "O",
+"X" : "Z"
+}
+RP = [7,11,19]
+#word = "helloxmeetxmexatxthexstairs"
+word = "HCAJIFWYBQJ"
+##word = "WritteninthesewallsarethestoriesthatIcantexplainIleavemyheartopenbutitstaysrighthereemptyfordaysShetoldmeinthemorningShedontfeelthesameaboutusinherbonesItseemstomethatwhenIdieThesewordswillbewrittenonmystoneAndIllbegonegonetonightThegroundbeneathmyfeetisopenwideThewaythatIvebeenholdinontootightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryofthestoryofWrittenonthesewallsareThecolorsthatIcantchangeLeavemyheartopenButitstaysrighthereinitscageIknowthatinthemorningnowIseeascendinglightuponahillAlthoughIambrokenmyheartisuntamedstillAndIllbegonegonetonightThefirebeneathmyfeetisburningbrightThewaythatIvebeenholdinonsotightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryof"
 ##Call Function Enigma
-Enigma(SL, SP, PB, RP, "WritteninthesewallsarethestoriesthatIcantexplainIleavemyheartopenbutitstaysrighthereemptyfordaysShetoldmeinthemorningShedontfeelthesameaboutusinherbonesItseemstomethatwhenIdieThesewordswillbewrittenonmystoneAndIllbegonegonetonightThegroundbeneathmyfeetisopenwideThewaythatIvebeenholdinontootightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryofthestoryofWrittenonthesewallsareThecolorsthatIcantchangeLeavemyheartopenButitstaysrighthereinitscageIknowthatinthemorningnowIseeascendinglightuponahillAlthoughIambrokenmyheartisuntamedstillAndIllbegonegonetonightThefirebeneathmyfeetisburningbrightThewaythatIvebeenholdinonsotightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryof")
+Enigma(SL, SP, PB, RP, word)
