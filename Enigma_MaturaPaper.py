@@ -10,7 +10,7 @@ def Enigma (SL, SP, PB, RP, word):
     SP (Scrambler Position, List of 3 Letters you can see on the machine)
     PB (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
     RP (Ring Position, List of 3 Numbers from 1 - 26)
-    l (Input letter)"""
+    word (Input Word)"""
     SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[SL[2]] ## Turns the Three roman numerals of the scrambler into Numbers
     SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65 ##Turn State into Numbers
     ## Creates the 3 Scramblers with the specific information
@@ -21,8 +21,9 @@ def Enigma (SL, SP, PB, RP, word):
     ScramblerText.close() #Important to close the File -->  Otherwise it corupts
     S1.RingSetting, S2.RingSetting, S3.RingSetting ##Applies ring setting
 
-    for x in range(100): ##Only for debugging
-        l = "a"
+    print("Output: ", end="")
+    for x in word:
+        l = x
         l = l.upper() ##First I change all the letters that are inputted to an uppercase letter for simplicity and originality
         pbo = Plugboard(l, PB, BP)
         so = S1.forward(S2.forward(S3.forward(pbo)))
@@ -110,7 +111,7 @@ ScramblerNum = {"I":0,"II":1,"III":2,"IV":3,"V":4}
 
 ##Input Values
 SL = ["I","II","III"]
-SP = ["A","B","C"]
+SP = ["A","B","U"]
 PB = {
     "A":"G",
     "H":"Q",
@@ -121,4 +122,5 @@ PB = {
 }
 RP = [1,1,1]
 ##Call Function Enigma
-Enigma(SL, SP, PB, RP, "A")
+word = str(input("Enter Word: "))
+Enigma(SL, SP, PB, RP, word)
