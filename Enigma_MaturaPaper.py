@@ -1,71 +1,106 @@
 import json
 from copy import *
+
 ##ScramblerWiring info is opened --> and json information extracted
 ScramblerText = open('ScramblerText.txt', 'r')
 Scramblers = json.load(ScramblerText)
 
+
 ##Main Function
-def Enigma(SL, SP, PB, l):
-    l = l.upper()
-    print ("Input Letter:" + l)
-    ##3 Scramblers in a row that have the positions and name specified in list SL (0 is left most scrambler), then Roman numerals translated into python data
-    ##Plugboard function, Scrambler Function used 3 times in a row with different scramblers, Reflector then checked wether output rf is in the reverse plugboard or not
-    SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[SL[2]]
-    ##S1-S3 are the Different classes for the 3 chosen Scramblers
-    S1 = Scrambler(Scramblers[SL1], Scramblers[6][SL1], SP[0])
-    S2 = Scrambler(Scramblers[SL2], Scramblers[6][SL2], SP[1])
-    S3 = Scrambler(Scramblers[SL3], Scramblers[6][SL3], SP[2])
-    s1, s2, s3 = deepcopy(S1), deepcopy(S2), deepcopy(S3) #Copying the Scramblers so that it can be used in the beginning REDO!!!
-    BP = {value: key for key, value in PB.items()} #Creating a Second Dictionary with the reversed keys
-    ScramblerText.close() #Important to close the File --> Otherwise it corupts
-    InitRotate([S3, S2, S1],[s3, s2, s1])
-    Rotator([S3, S2, S1],[s3, s2, s1])
+def Enigma(SL, SP, PB, RP, l):
+    """SL (Scrambler Location, List of 3 Scramblers)
+    SP (Scrambler Position, List of 3 Letters you can see on the machine)
+    PB (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
+    RP (Ring Position, List of 3 Numbers from 1 - 26)
+    l (Input letter)"""
+    l = l.upper()  ##First I change all the letters that are inputted to an uppercase letter for simplicity and originality
+    SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[
+        SL[2]]  ## Turns the Three roman numerals of the scrambler into Numbers
+    SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65
+    ## Creates the 3 Scramblers with the specific information
+    S1 = Scrambler(3, Scramblers[SL1], Scramblers[6][SL1], SP1, RP[0])  ##Left scrambler in the machine
+    S2 = Scrambler(2, Scramblers[SL2], Scramblers[6][SL2], SP2, RP[1])  ##Middle Scrambler in the machine
+    S3 = Scrambler(1, Scramblers[SL3], Scramblers[6][SL3], SP3, RP[2])  ##Right Scrambler in the machine
+    BP = {value: key for key, value in PB.items()}  # Creating a Second Dictionary with the reversed keys
+    ScramblerText.close()  # Important to close the File --> Otherwise it corupts
+    S1.RingSetting, S2.RingSetting, S3.RingSetting
+
     pbo = Plugboard(l, PB, BP)
     print(pbo)
-    so = S1.encode(S2.encode(S3.encode(l)))
-    print(so)
-    rf = Reflector(so,[SL1, SL2, SL3])
-    print(rf)
+    so = S1.forward(S2.forward(S3.forward(pbo)))
+    print(S1.State, S2.State, S3.State)
+    rf0 = Scramblers[5][so]
+    rf = S3.backward(S2.backward(S1.backward(rf0)))
     ##Checking wether the letter is in the Plugboard or not
     if rf in PB:
         pbor = PB[rf]
-        return [pbor, [S1.State, S2.State, S3.State]]
+        return [pbor]
     elif rf in BP:
         pbor = BP[rf]
-        return [pbor, [S1.State, S2.State, S3.State]]
+        return [pbor]
     else:
-        return [rf, [S1.State, S2.State, S3.State]]
+        return [rf]
 
-##Sub Functions
+
 class Scrambler(object):
-    def __init__(self, Wiring, TurnOverNotch, State):
+    def __init__(self, Position, Wiring, TurnOverNotch, State, RingPosition):
+        # Declaring the Variables for the class
+        self.Position = Position
         self.Wiring = Wiring
         self.TurnOverNotch = TurnOverNotch
         self.State = State
+        self.RingPosition = RingPosition
+        self.counter = 0
 
-    def encode(self, letter):
-        """Encodes the letter with the wiring of the Scrambler"""
-        return self.Wiring[letter]
+    def RingSetting(self):
+        c = copy(self.Wiring)
+        ring = self.RingPosition - 1
+        if ring == 0:
+            return self.wiring
+        else:
+            for i in range(ring):
+                for x in range(26):
+                    self.Wiring[chr(i + 65)] = c[chr(((i + 1) % 26) + 65)]
+            return self.Wiring
 
-    # def InitRotate(self):
-    #     c = copy(self.Wiring)
-    #     for i in range(ord(self.State)):
-    #         for x in range(26):
-    #             self.Wiring[chr(i + 65)] = c[chr(((i + 1) % 26) + 65)]
+    def forward(self, letter):
+        self.counter += 1
+        print(self.counter)
+        lnumber = ord(letter) - 65
+        if self.Position == 1:
+            self.State += 1
+            letter_new = chr(((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        elif self.Position == 2:
+            if self.counter == ord(self.TurnOverNotch):
+                self.State += 1
+                letter_new = chr(
+                    ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+            else:
+                letter_new = chr(
+                    ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        elif self.Position == 3:
+            if self.counter == ord(self.TurnOverNotch) + 26:
+                self.State += 1
+                letter_new = chr(
+                    ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+            else:
+                letter_new = chr(
+                    ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        print(letter_new)
+        return letter_new
 
-def InitRotate(Scram, STEMP):
-    """This is the Initial Rotation to the correct position set on the Enigma"""
-    cp1, CP1, cp2, CP2, cp3, CP3 = Scram[0].State, STEMP[0].State, Scram[1].State, STEMP[1].State, Scram[2].State, STEMP[2].State
-    S1, Stemp1, S2, Stemp2, S3, Stemp3 = Scram[0].Wiring, STEMP[0].Wiring, Scram[1].Wiring, STEMP[1].Wiring, Scram[2].Wiring, STEMP[2].Wiring
-    for i in range(ord(CP1)):
-        for x in range(26):
-            S1[chr(i + 65)] = Stemp1[chr(((i + 1) % 26) + 65)]
-    for i in range(ord(CP2)):
-        for x in range(26):
-            S2[chr(i + 65)] = Stemp2[chr(((i + 1) % 26) + 65)]
-    for i in range(ord(CP3)):
-        for x in range(26):
-            S3[chr(i + 65)] = Stemp3[chr(((i + 1) % 26) + 65)]
+    def backward(self, letter):
+        lnumber = ord(letter) - 65
+        reverse = {value: key for key, value in self.Wiring.items()}
+        if self.Position == 1:
+            letter_new = chr(((ord(reverse[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        elif self.Position == 2:
+            letter_new = chr(((ord(reverse[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        elif self.Position == 3:
+            letter_new = chr(((ord(reverse[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
+        print(letter_new)
+        return letter_new
+
 
 def Plugboard(l, PB, BP):
     ##If the letter is in the Plugboard(PB) then it changes its value otherwise it keeps it.
@@ -77,44 +112,35 @@ def Plugboard(l, PB, BP):
         pbo = l
     return pbo
 
-def Rotator(Scram, STEMP):
-    ##Setup of the Variables with the Variable Dictionary and the Fixed Dictionary
-    cp1, CP1, cp2, CP2, cp3, CP3 = Scram[0].State, STEMP[0].State, Scram[1].State, STEMP[1].State, Scram[2].State, STEMP[2].State
-    S1, Stemp1, S2, Stemp2, S3, Stemp3 = Scram[0].Wiring, STEMP[0].Wiring, Scram[1].Wiring, STEMP[1].Wiring, Scram[2].Wiring, STEMP[2].Wiring
-    ##Rotation takes place
-    for i in range(26):
-        S1[chr(i + 65)] = Stemp1[chr(((i + 1) % 26) + 65)]
-    cp1 = chr(ord(CP1) + 1)
-    if cp1 == Scram[0].TurnOverNotch:
-        for i in range(26):
-            S2[chr(i + 65)] = Stemp2[chr(((i + 1) % 26) + 65)]
-        cp2 = chr(ord(CP2) + 1)
-    if cp2 == Scram[1].TurnOverNotch:
-        for i in range(26):
-            S3[chr(i + 65)] = Stemp3[chr(((i + 1) % 26) + 65)]
-        cp3 = chr(ord(CP3) + 1)
 
 def Reflector(l, f):
     ##Letter first goes through reflector scrambler, then back from right to left through scramblers
     l = Scramblers[5][l]
+    print(l)
     ## following code is a way to flip the direction of a dictionary, pretty much checks for all the values of dict then all keys and searches for index i
-    s1, s2, s3 = {value: key for key, value in Scramblers[f[0]].items()}, {value: key for key, value in Scramblers[f[1]].items()}, {value: key for key, value in Scramblers[f[2]].items()}
+    s1, s2, s3 = {value: key for key, value in f[0].items()}, {value: key for key, value in f[1].items()}, {value: key
+                                                                                                            for
+                                                                                                            key, value
+                                                                                                            in f[
+                                                                                                                2].items()}
     return s3[s2[s1[l]]]
 
 
 ##Changes roman numerals to Python Indices
-ScramblerNum = {"I":0,"II":1,"III":2,"IV":3,"V":4}
+ScramblerNum = {"I": 0, "II": 1, "III": 2, "IV": 3, "V": 4}
 
 ##Input Values
-SL = ["I","II","III"]
-SP = ["A","B","C"]
-PB = {"A":"G",
-      "H":"Q",
-      "O":"C",
-      "Z":"Y",
-      "N":"M",
-      "T":"K"}
-
+SL = ["I", "II", "III"]
+SP = ["A", "B", "C"]
+PB = {
+    "A": "G",
+    "H": "Q",
+    "O": "C",
+    "Z": "Y",
+    "N": "M",
+    "T": "K"
+}
+RP = [1, 1, 1]
 ##Call Function Enigma
-for q in range(2):
-    print(Enigma(SL, SP, PB, "A"))
+for q in range(1):
+    print(Enigma(SL, SP, PB, RP, "H"))
