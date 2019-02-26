@@ -7,13 +7,12 @@ Scramblers = json.load(ScramblerText)
 
 
 ##Main Function
-def Enigma(SL, SP, PB, RP, l):
+def Enigma(SL, SP, PB, RP, word):
     """SL (Scrambler Location, List of 3 Scramblers)
     SP (Scrambler Position, List of 3 Letters you can see on the machine)
     PB (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
     RP (Ring Position, List of 3 Numbers from 1 - 26)
     l (Input letter)"""
-    l = l.upper()  ##First I change all the letters that are inputted to an uppercase letter for simplicity and originality
     SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[
         SL[2]]  ## Turns the Three roman numerals of the scrambler into Numbers
     SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65
@@ -25,21 +24,22 @@ def Enigma(SL, SP, PB, RP, l):
     ScramblerText.close()  # Important to close the File --> Otherwise it corupts
     S1.RingSetting, S2.RingSetting, S3.RingSetting
 
-    pbo = Plugboard(l, PB, BP)
-    print(pbo)
-    so = S1.forward(S2.forward(S3.forward(pbo)))
-    print(S1.State, S2.State, S3.State)
-    rf0 = Scramblers[5][so]
-    rf = S3.backward(S2.backward(S1.backward(rf0)))
-    ##Checking wether the letter is in the Plugboard or not
-    if rf in PB:
-        pbor = PB[rf]
-        return [pbor]
-    elif rf in BP:
-        pbor = BP[rf]
-        return [pbor]
-    else:
-        return [rf]
+    for x in range(100):
+        l = "a"
+        l = l.upper()  ##First I change all the letters that are inputted to an uppercase letter for simplicity and originality
+        pbo = Plugboard(l, PB, BP)
+        so = S1.forward(S2.forward(S3.forward(pbo)))
+        rf0 = Scramblers[5][so]
+        rf = S3.backward(S2.backward(S1.backward(rf0)))
+        ##Checking whether the letter is in the Plugboard or not
+        if rf in PB:
+            pbor = PB[rf]
+            print(pbor, end="")
+        elif rf in BP:
+            pbor = BP[rf]
+            print(pbor, end="")
+        else:
+            print(rf, end="")
 
 
 class Scrambler(object):
@@ -65,13 +65,12 @@ class Scrambler(object):
 
     def forward(self, letter):
         self.counter += 1
-        print(self.counter)
         lnumber = ord(letter) - 65
         if self.Position == 1:
             self.State += 1
             letter_new = chr(((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
         elif self.Position == 2:
-            if self.counter == ord(self.TurnOverNotch):
+            if self.counter == 26:
                 self.State += 1
                 letter_new = chr(
                     ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
@@ -79,14 +78,13 @@ class Scrambler(object):
                 letter_new = chr(
                     ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
         elif self.Position == 3:
-            if self.counter == ord(self.TurnOverNotch) + 26:
+            if self.counter == (ord(self.TurnOverNotch) - 65 + 26):
                 self.State += 1
                 letter_new = chr(
                     ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
             else:
                 letter_new = chr(
                     ((ord(self.Wiring[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
-        print(letter_new)
         return letter_new
 
     def backward(self, letter):
@@ -98,7 +96,6 @@ class Scrambler(object):
             letter_new = chr(((ord(reverse[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
         elif self.Position == 3:
             letter_new = chr(((ord(reverse[chr((lnumber + self.State) % 26 + 65)]) - 65 - self.State) % 26) + 65)
-        print(letter_new)
         return letter_new
 
 
@@ -111,19 +108,6 @@ def Plugboard(l, PB, BP):
     else:
         pbo = l
     return pbo
-
-
-def Reflector(l, f):
-    ##Letter first goes through reflector scrambler, then back from right to left through scramblers
-    l = Scramblers[5][l]
-    print(l)
-    ## following code is a way to flip the direction of a dictionary, pretty much checks for all the values of dict then all keys and searches for index i
-    s1, s2, s3 = {value: key for key, value in f[0].items()}, {value: key for key, value in f[1].items()}, {value: key
-                                                                                                            for
-                                                                                                            key, value
-                                                                                                            in f[
-                                                                                                                2].items()}
-    return s3[s2[s1[l]]]
 
 
 ##Changes roman numerals to Python Indices
@@ -142,5 +126,4 @@ PB = {
 }
 RP = [1, 1, 1]
 ##Call Function Enigma
-for q in range(1):
-    print(Enigma(SL, SP, PB, RP, "H"))
+Enigma(SL, SP, PB, RP, "A")
