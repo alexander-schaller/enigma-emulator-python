@@ -1,5 +1,4 @@
 import json
-##Scrambler #1 turns over between Q and R, Scrambler #2 turns over between E and F, Scrambler #3 turns over between V and W
 ##ScramblerWiring info is opened --> and json information extracted
 ScramblerText = open('ScramblerText.txt', 'r')
 Scramblers = json.load(ScramblerText)
@@ -43,6 +42,23 @@ def Plugboard(l):
         pbo = l
     return pbo
 
+def Rotator(f, cp):
+    """F is the Scrambler Layout, while cp is is the current position of the scrambler"""
+    ##cp is there to be used with the notch so it can turn at an apropriate position
+    for i in range(26):
+        i = i + 65
+    Scramblers[f[0]][chr(i)] = Scramblers[f[0]][chr(i + 1)]
+    return Scramblers[f[0]]
+    if cp[0] = #dont know yet :
+        for i in range(26):
+            i = i + 65
+        Scramblers[f[1]][chr(i)] = Scramblers[f[1]][chr(i + 1)]
+    if cp[1] = #dont know yet :
+        for i in range(26):
+            i = i + 65
+        Scramblers[f[2]][chr(i)] = Scramblers[f[2]][chr(i + 1)]
+
+
 def Reflector(l, f):
     """Letter l and Scrambler list f"""
     ##Letter first goes through reflector scrambler, then back from right to left through scramblers
@@ -52,6 +68,7 @@ def Reflector(l, f):
     s2 = list(Scramblers[f[1]].keys())[list(Scramblers[f[1]].values()).index(s1)]
     s3 = list(Scramblers[f[2]].keys())[list(Scramblers[f[2]].values()).index(s2)]
     return s3
+
 
 ##Changes roman numerals to Python Indices
 ScramblerNum = {"I":0,"II":1,"III":2,"IV":3,"V":4}
@@ -68,3 +85,4 @@ PB = {"A":"G",
 
 ##Call Function Enigma
 print("Output Letter: " + Enigma(SL, SP, PB, "h"))
+print(Rotator())
