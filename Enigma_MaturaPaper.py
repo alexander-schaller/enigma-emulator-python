@@ -1,34 +1,38 @@
 import json
+
 ##ScramblerWiring info is opened --> and json information extracted
 ScramblerText = open('ScramblerText.txt', 'r')
 Scramblers = json.load(ScramblerText)
 
+
 ##Main Function
-def Enigma (SL, SP, PB, RP, word):
+def Enigma(SL, SP, PB, RP, word):
     """SL (Scrambler Location, List of 3 Scramblers)
     SP (Scrambler Position, List of 3 Letters you can see on the machine)
     PB (Plugboard, Dictionary with 0 - 13 Letters connecting with eachother)
     RP (Ring Position, List of 3 Numbers from 1 - 26)
     word (Input)"""
-    ScramblerNum = {"I":0,"II":1,"III":2,"IV":3,"V":4}
-    SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[SL[2]] ## Turns the Three roman numerals of the scrambler into Numbers
-    SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65 ##Turn State into Numbers
+    ScramblerNum = {"I": 0, "II": 1, "III": 2, "IV": 3, "V": 4}
+    SL1, SL2, SL3 = ScramblerNum[SL[0]], ScramblerNum[SL[1]], ScramblerNum[
+        SL[2]]  ## Turns the Three roman numerals of the scrambler into Numbers
+    SP1, SP2, SP3 = ord(SP[0]) - 65, ord(SP[1]) - 65, ord(SP[2]) - 65  ##Turn State into Numbers
     ## Creates the 3 Scramblers with the specific information
-    S1 = Scrambler(Scramblers[SL1], Scramblers[6][SL1], SP1, RP[0]) ##Left scrambler in the machine
-    S2 = Scrambler(Scramblers[SL2], Scramblers[6][SL2], SP2, RP[1]) ##Middle Scrambler in the machine
-    S3 = Scrambler(Scramblers[SL3], Scramblers[6][SL3], SP3, RP[2]) ##Right Scrambler in the machine
-    BP = {value: key for key, value in PB.items()} ##Creating a Second Dictionary with the reversed keys
-    PB.update(BP) ##Joining Both Dictionaries
-    ScramblerText.close() ##Important to close the File -->  Otherwise it corupts
-    x, y, z= False, False, False ##Variables to prevent repetition
-    S1.ring_setting(), S2.ring_setting(), S3.ring_setting() ##Applies ring setting
+    S1 = Scrambler(Scramblers[SL1], Scramblers[6][SL1], SP1, RP[0])  ##Left scrambler in the machine
+    S2 = Scrambler(Scramblers[SL2], Scramblers[6][SL2], SP2, RP[1])  ##Middle Scrambler in the machine
+    S3 = Scrambler(Scramblers[SL3], Scramblers[6][SL3], SP3, RP[2])  ##Right Scrambler in the machine
+    BP = {value: key for key, value in PB.items()}  ##Creating a Second Dictionary with the reversed keys
+    PB.update(BP)  # Joining Both Dictionaries
+    ScramblerText.close()  ##Important to close the File -->  Otherwise it corupts
+    x, y, z = False, False, False  ##Variables to prevent repetition
+    S1.ring_setting(), S2.ring_setting(), S3.ring_setting()  ##Applies ring setting
 
-    for l in word: ##Iterates through the Script for each component of word (In this case letters)
-        l = l.upper() ##All input are changed to uppercase
-        pbd = plugboard(l, PB) ##Input l goes through Plugboard function with arguments l (letter) and PB (Dictionary for Plugboard)
+    for l in word:  ##Iterates through the Script for each component of word (In this case letters)
+        l = l.upper()  ##All input are changed to uppercase
+        pbd = plugboard(l,
+                        PB)  ##Input l goes through Plugboard function with arguments l (letter) and PB (Dictionary for Plugboard)
 
         ##Forward through Scramblers
-        S3.state_up() ##State increased by one
+        S3.state_up()  ##State increased by one
         ##If the State Matches that of the TurnOverNotch, State of next rotor goes up by one
         if x:
             S2.state_up()
@@ -48,18 +52,19 @@ def Enigma (SL, SP, PB, RP, word):
             y = True
 
         ##Back through Scramblers
-        rf = Scramblers[5][letter_new3] ##Letter goes through Reflector Dictionary
+        rf = Scramblers[5][letter_new3]  ##Letter goes through Reflector Dictionary
         letter_back1 = S1.backward(rf)
         letter_back2 = S2.backward(letter_back1)
         letter_back3 = S3.backward(letter_back2)
 
         ##Checking whether the letter is in the Plugboard or not
-        print(plugboard(letter_back3, PB), end = "")
+        print(plugboard(letter_back3, PB), end="")
+
 
 ##Scrambler Class
 class Scrambler(object):
     def __init__(self, Wiring, TurnOverNotch, State, RingPosition):
-        #Declaring the Variables for the class
+        # Declaring the Variables for the class
         self.Wiring = Wiring
         self.TurnOverNotch = TurnOverNotch
         self.State = State
@@ -76,11 +81,14 @@ class Scrambler(object):
 
     def forward(self, l):
         ##State is added to the letter Ring Position is subtracted then checked whether it is bigger than 26
-        return chr(((ord(self.Wiring[chr((ord(l) - 65 + self.State - self.RingPosition)%26 + 65)]) - 65 - self.State + self.RingPosition)% 26) + 65)
+        return chr(((ord(self.Wiring[chr((ord(
+            l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
 
     def backward(self, l):
         og = {value: key for key, value in self.Wiring.items()}
-        return chr(((ord(og[chr((ord(l) - 65 + self.State - self.RingPosition)%26 + 65)]) - 65 - self.State + self.RingPosition)% 26) + 65)
+        return chr(((ord(og[chr((ord(
+            l) - 65 + self.State - self.RingPosition) % 26 + 65)]) - 65 - self.State + self.RingPosition) % 26) + 65)
+
 
 ##Sub Functions
 def plugboard(l, PB):
@@ -91,24 +99,24 @@ def plugboard(l, PB):
         pbo = l
     return pbo
 
+
 ##Input Values
-SL = ["I","IV","II"]
-SP = ["A","L","X"]
+SL = ["I", "IV", "II"]
+SP = ["A", "R", "Y"]
 PB = {
-"A" : "C",
-"B" : "Q",
-"E" : "T",
-"G" : "Y",
-"I" : "R",
-"J" : "W",
-"L" : "S",
-"M" : "U",
-"N" : "O",
-"X" : "Z"
+    "A": "C",
+    "B": "Q",
+    "E": "T",
+    "G": "Y",
+    "I": "R",
+    "J": "W",
+    "L": "S",
+    "M": "U",
+    "N": "O",
+    "X": "Z"
 }
-RP = [7,11,19]
-#word = "helloxmeetxmexatxthexstairs"
-word = "HCAJIFWYBQJ"
+RP = [7, 11, 19]
+word = "helloxmeetxmexatxthexstairs"
 ##word = "WritteninthesewallsarethestoriesthatIcantexplainIleavemyheartopenbutitstaysrighthereemptyfordaysShetoldmeinthemorningShedontfeelthesameaboutusinherbonesItseemstomethatwhenIdieThesewordswillbewrittenonmystoneAndIllbegonegonetonightThegroundbeneathmyfeetisopenwideThewaythatIvebeenholdinontootightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryofthestoryofWrittenonthesewallsareThecolorsthatIcantchangeLeavemyheartopenButitstaysrighthereinitscageIknowthatinthemorningnowIseeascendinglightuponahillAlthoughIambrokenmyheartisuntamedstillAndIllbegonegonetonightThefirebeneathmyfeetisburningbrightThewaythatIvebeenholdinonsotightWithnothinginbetweenThestoryofmylifeItakeherhomeIdriveallnighttokeepherwarmandtimeIsfrozenthestoryofthestoryofThestoryofmylifeIgiveherhopeIspendherloveuntilshesbrokeinsideThestoryofmylifethestoryof"
 ##Call Function Enigma
 Enigma(SL, SP, PB, RP, word)
